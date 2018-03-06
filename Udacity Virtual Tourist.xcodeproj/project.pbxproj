@@ -8,20 +8,20 @@
 
 /* Begin PBXBuildFile section */
 		A791DBE2204DE19C00763323 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = A791DBE1204DE19C00763323 /* AppDelegate.swift */; };
-		A791DBE4204DE19C00763323 /* ViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = A791DBE3204DE19C00763323 /* ViewController.swift */; };
 		A791DBE7204DE19C00763323 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A791DBE5204DE19C00763323 /* Main.storyboard */; };
 		A791DBE9204DE19C00763323 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A791DBE8204DE19C00763323 /* Assets.xcassets */; };
 		A791DBEC204DE19C00763323 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A791DBEA204DE19C00763323 /* LaunchScreen.storyboard */; };
+		A791DBF5204DE21000763323 /* TravelLocationsMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A791DBF4204DE21000763323 /* TravelLocationsMapView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		A791DBDE204DE19C00763323 /* Udacity Virtual Tourist.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Udacity Virtual Tourist.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A791DBE1204DE19C00763323 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
-		A791DBE3204DE19C00763323 /* ViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ViewController.swift; sourceTree = "<group>"; };
 		A791DBE6204DE19C00763323 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		A791DBE8204DE19C00763323 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		A791DBEB204DE19C00763323 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		A791DBED204DE19D00763323 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		A791DBF4204DE21000763323 /* TravelLocationsMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TravelLocationsMapView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -54,14 +54,22 @@
 		A791DBE0204DE19C00763323 /* Udacity Virtual Tourist */ = {
 			isa = PBXGroup;
 			children = (
+				A791DBF3204DE1CF00763323 /* View */,
 				A791DBE1204DE19C00763323 /* AppDelegate.swift */,
-				A791DBE3204DE19C00763323 /* ViewController.swift */,
 				A791DBE5204DE19C00763323 /* Main.storyboard */,
 				A791DBE8204DE19C00763323 /* Assets.xcassets */,
 				A791DBEA204DE19C00763323 /* LaunchScreen.storyboard */,
 				A791DBED204DE19D00763323 /* Info.plist */,
 			);
 			path = "Udacity Virtual Tourist";
+			sourceTree = "<group>";
+		};
+		A791DBF3204DE1CF00763323 /* View */ = {
+			isa = PBXGroup;
+			children = (
+				A791DBF4204DE21000763323 /* TravelLocationsMapView.swift */,
+			);
+			path = View;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -136,8 +144,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A791DBE4204DE19C00763323 /* ViewController.swift in Sources */,
 				A791DBE2204DE19C00763323 /* AppDelegate.swift in Sources */,
+				A791DBF5204DE21000763323 /* TravelLocationsMapView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

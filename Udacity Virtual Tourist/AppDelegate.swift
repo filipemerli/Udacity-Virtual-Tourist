@@ -13,9 +13,27 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
 
+    func checkIfFirstLaunch() {
+        if(UserDefaults.standard.bool(forKey: "firstTimeLaunching")) {
+            
+            print("NAO EH A PRIMEIRA VEZ")
+            
+        } else {
+            print("PRIMEIRA VEZ")
+            UserDefaults.standard.set(true, forKey: "firstTimeLaunching")
+            UserDefaults.standard.set(38.36688, forKey: "defaultLatitude")
+            UserDefaults.standard.set(-97.492188, forKey: "defaultLongitude")
+            UserDefaults.standard.set(72.242558, forKey: "defLatiDelta")
+            UserDefaults.standard.set(44.850853, forKey: "defLongiDelta")
+            
+            UserDefaults.standard.synchronize()
+        }
+    }
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        
+        checkIfFirstLaunch()
+        
         return true
     }
 
