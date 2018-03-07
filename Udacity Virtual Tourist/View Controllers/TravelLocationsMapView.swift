@@ -13,17 +13,21 @@ import CoreData
 class TravelLocationsMapView: UIViewController, MKMapViewDelegate {
     
     var pins = [Pin]()
-    
+    //var fetchedResultsController: NSFetchedResultsController<Pin>!
     var managedObjectContext: NSManagedObjectContext!
+    //var dataController: DataController!
+    
+    var inEditingMode = false
+    var longPress = UILongPressGestureRecognizer()
     
     @IBOutlet weak var navigationBar: UINavigationBar!
-    
     @IBOutlet weak var redBottomButton: UIButton!
-    
     @IBOutlet weak var editButton: UIBarButtonItem!
+    @IBOutlet weak var mapView: MKMapView!
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
+
         standartState()
     }
     
@@ -33,7 +37,7 @@ class TravelLocationsMapView: UIViewController, MKMapViewDelegate {
         mapView.delegate = self
         mapView.isRotateEnabled = false
         
-        let longPress = UILongPressGestureRecognizer(target: self, action: #selector(addAnnotation(LongGesture:)))
+        longPress = UILongPressGestureRecognizer(target: self, action: #selector(addAnnotation(longGesture:)))
         longPress.minimumPressDuration = 1.8
         mapView.addGestureRecognizer(longPress)
         
@@ -44,18 +48,21 @@ class TravelLocationsMapView: UIViewController, MKMapViewDelegate {
 
     }
     
-    // Salvar ultima "tela" visualizada pelo usuario no Userdefaults!
-    func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
-        
-        UserDefaults.standard.set(mapView.centerCoordinate.latitude, forKey: "defaultLatitude")
-        UserDefaults.standard.set(mapView.centerCoordinate.longitude, forKey: "defaultLongitude")
-        
-        UserDefaults.standard.set(mapView.region.span.latitudeDelta, forKey: "defLatiDelta")
-        UserDefaults.standard.set(mapView.region.span.longitudeDelta, forKey: "defLongiDelta")
-        
+    override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
+        //fetchedResultsController = nil
     }
     
-    // MUDAR ESTILO DO PIN
+    // Salvar ultima "tela" visualizada pelo usuario no Userdefaults!
+    func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
+        UserDefaults.standard.set(mapView.centerCoordinate.latitude, forKey: "defaultLatitude")
+        UserDefaults.standard.set(mapView.centerCoordinate.longitude, forKey: "defaultLongitude")
+        UserDefaults.standard.set(mapView.region.span.latitudeDelta, forKey: "defLatiDelta")
+        UserDefaults.standard.set(mapView.region.span.longitudeDelta, forKey: "defLongiDelta")
+    }
+    
+    // MARK: MapView Delegates
+    
     func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
         let reuseId = "pin"
         var pinView = mapView.dequeueReusableAnnotationView(withIdentifier: reuseId) as? MKPinAnnotationView
@@ -70,30 +77,35 @@ class TravelLocationsMapView: UIViewController, MKMapViewDelegate {
         }
         return pinView
     }
-
-
-@IBOutlet weak var mapView: MKMapView!
     
-    @objc func addAnnotation(LongGesture: UIGestureRecognizer) {
-        let touchPoint = LongGesture.location(in: mapView)
-        let pinCoordinates = mapView.convert(touchPoint, toCoordinateFrom: mapView)
+    func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
         
-        let newAnnotation = MKPointAnnotation()
-        newAnnotation.coordinate = pinCoordinates
+        print("Pin Tapped")
         
-        print("APERTOOOOU")
-        
-        let primeiroPinSalvo = Pin(context: managedObjectContext)
-        primeiroPinSalvo.pinLatitude = pinCoordinates.latitude
-        primeiroPinSalvo.pinLongitude = pinCoordinates.longitude
-        
-        do {
-            try self.managedObjectContext.save()
-        } catch {
-            print("Could not save data \(error.localizedDescription)")
+    }
+    
+
+    
+    @objc func addAnnotation(longGesture: UIGestureRecognizer) {
+        if longGesture.state == UIGestureRecognizerState.began {
+            let touchPoint = longGesture.location(in: mapView)
+            let pinCoordinates = mapView.convert(touchPoint, toCoordinateFrom: mapView)
+            
+            let newAnnotation = MKPointAnnotation()
+            newAnnotation.coordinate = pinCoordinates
+            
+            let primeiroPinSalvo = Pin(context: managedObjectContext)
+            primeiroPinSalvo.pinLatitude = pinCoordinates.latitude
+            primeiroPinSalvo.pinLongitude = pinCoordinates.longitude
+            
+            do {
+                try self.managedObjectContext.save()
+            } catch {
+                print("Could not save data \(error.localizedDescription)")
+            }
+            
+            mapView.addAnnotation(newAnnotation)
         }
-        
-        mapView.addAnnotation(newAnnotation)
     }
     
     func zoomOnMap() {
@@ -103,14 +115,12 @@ class TravelLocationsMapView: UIViewController, MKMapViewDelegate {
         zoomLocation.longitude = UserDefaults.standard.double(forKey: "defaultLongitude")
         zoomSpan.latitudeDelta = UserDefaults.standard.double(forKey: "defLatiDelta")
         zoomSpan.longitudeDelta = UserDefaults.standard.double(forKey: "defLongiDelta")
-
         let viewRegion = MKCoordinateRegionMake(zoomLocation, zoomSpan)
         mapView.setRegion(viewRegion, animated: false)
         
     }
     
     func populateMap() {
-        
         let pinRequest: NSFetchRequest<Pin> = Pin.fetchRequest()
         
         do {
@@ -118,8 +128,6 @@ class TravelLocationsMapView: UIViewController, MKMapViewDelegate {
         } catch {
             print("Could not load data \(error.localizedDescription)")
         }
-        
-        print("NUMEROS DE PINS  = \(pins.count)")
         
         mapView.removeAnnotations(mapView.annotations)
         var annotations = [MKPointAnnotation]()
@@ -136,23 +144,39 @@ class TravelLocationsMapView: UIViewController, MKMapViewDelegate {
     
     @objc func editPinsPressed() {
         editionState()
+        
     }
     
     @objc func donePressed() {
         mapView.frame.origin.y = 0
+    
+        let pinRequest: NSFetchRequest<Pin> = Pin.fetchRequest()
+        
+        do {
+            let objects = try managedObjectContext.fetch(pinRequest)
+            for object in objects {
+                managedObjectContext.delete(object)
+            }
+            try managedObjectContext.save()
+        } catch {
+            print("Could not delete data \(error.localizedDescription)")
+        }
+        populateMap()
         standartState()
     }
-    
+
     
     //MARK: Buttons configurations
     
     func standartState() {
+        inEditingMode = false
         redBottomButton.isHidden = true
         self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .edit,target: self, action: #selector(editPinsPressed))
         
     }
     
     func editionState() {
+        inEditingMode = true
         redBottomButton.isHidden = false
         let redButtomHeight = redBottomButton.frame.size.height
         mapView.frame.origin.y = 0 - redButtomHeight
