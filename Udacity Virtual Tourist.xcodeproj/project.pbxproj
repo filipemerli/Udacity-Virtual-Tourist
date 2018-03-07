@@ -12,6 +12,7 @@
 		A791DBE9204DE19C00763323 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A791DBE8204DE19C00763323 /* Assets.xcassets */; };
 		A791DBEC204DE19C00763323 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A791DBEA204DE19C00763323 /* LaunchScreen.storyboard */; };
 		A791DBF5204DE21000763323 /* TravelLocationsMapView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A791DBF4204DE21000763323 /* TravelLocationsMapView.swift */; };
+		A791DBFA204F08D000763323 /* TouristPoint.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = A791DBF8204F08D000763323 /* TouristPoint.xcdatamodeld */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -22,6 +23,7 @@
 		A791DBEB204DE19C00763323 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		A791DBED204DE19D00763323 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A791DBF4204DE21000763323 /* TravelLocationsMapView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TravelLocationsMapView.swift; sourceTree = "<group>"; };
+		A791DBF9204F08D000763323 /* TouristPoint.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = TouristPoint.xcdatamodel; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -54,8 +56,9 @@
 		A791DBE0204DE19C00763323 /* Udacity Virtual Tourist */ = {
 			isa = PBXGroup;
 			children = (
-				A791DBF3204DE1CF00763323 /* View */,
 				A791DBE1204DE19C00763323 /* AppDelegate.swift */,
+				A791DBF7204F06FD00763323 /* Model */,
+				A791DBF6204F06C900763323 /* View Controllers */,
 				A791DBE5204DE19C00763323 /* Main.storyboard */,
 				A791DBE8204DE19C00763323 /* Assets.xcassets */,
 				A791DBEA204DE19C00763323 /* LaunchScreen.storyboard */,
@@ -64,12 +67,20 @@
 			path = "Udacity Virtual Tourist";
 			sourceTree = "<group>";
 		};
-		A791DBF3204DE1CF00763323 /* View */ = {
+		A791DBF6204F06C900763323 /* View Controllers */ = {
 			isa = PBXGroup;
 			children = (
 				A791DBF4204DE21000763323 /* TravelLocationsMapView.swift */,
 			);
-			path = View;
+			path = "View Controllers";
+			sourceTree = "<group>";
+		};
+		A791DBF7204F06FD00763323 /* Model */ = {
+			isa = PBXGroup;
+			children = (
+				A791DBF8204F08D000763323 /* TouristPoint.xcdatamodeld */,
+			);
+			path = Model;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -144,6 +155,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A791DBFA204F08D000763323 /* TouristPoint.xcdatamodeld in Sources */,
 				A791DBE2204DE19C00763323 /* AppDelegate.swift in Sources */,
 				A791DBF5204DE21000763323 /* TravelLocationsMapView.swift in Sources */,
 			);
@@ -330,6 +342,19 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCVersionGroup section */
+		A791DBF8204F08D000763323 /* TouristPoint.xcdatamodeld */ = {
+			isa = XCVersionGroup;
+			children = (
+				A791DBF9204F08D000763323 /* TouristPoint.xcdatamodel */,
+			);
+			currentVersion = A791DBF9204F08D000763323 /* TouristPoint.xcdatamodel */;
+			path = TouristPoint.xcdatamodeld;
+			sourceTree = "<group>";
+			versionGroupType = wrapper.xcdatamodel;
+		};
+/* End XCVersionGroup section */
 	};
 	rootObject = A791DBD6204DE19C00763323 /* Project object */;
 }
