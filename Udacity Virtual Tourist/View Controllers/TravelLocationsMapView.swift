@@ -15,8 +15,18 @@ class TravelLocationsMapView: UIViewController, MKMapViewDelegate {
     var pins = [Pin]()
     
     var managedObjectContext: NSManagedObjectContext!
-
-
+    
+    @IBOutlet weak var navigationBar: UINavigationBar!
+    
+    @IBOutlet weak var redBottomButton: UIButton!
+    
+    @IBOutlet weak var editButton: UIBarButtonItem!
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        standartState()
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
 
@@ -124,9 +134,29 @@ class TravelLocationsMapView: UIViewController, MKMapViewDelegate {
         self.mapView.addAnnotations(annotations)
     }
     
-    @IBAction func editPins(_ sender: UIBarButtonItem) {
+    @objc func editPinsPressed() {
+        editionState()
+    }
+    
+    @objc func donePressed() {
+        mapView.frame.origin.y = 0
+        standartState()
+    }
+    
+    
+    //MARK: Buttons configurations
+    
+    func standartState() {
+        redBottomButton.isHidden = true
+        self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .edit,target: self, action: #selector(editPinsPressed))
         
-        
+    }
+    
+    func editionState() {
+        redBottomButton.isHidden = false
+        let redButtomHeight = redBottomButton.frame.size.height
+        mapView.frame.origin.y = 0 - redButtomHeight
+        self.navigationItem.rightBarButtonItem = UIBarButtonItem(barButtonSystemItem: .done, target: self, action: #selector(donePressed))
     }
     
 

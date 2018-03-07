@@ -22,28 +22,39 @@
                                 <rect key="frame" x="0.0" y="0.0" width="375" height="667"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                             </mapView>
-                            <toolbar opaque="NO" clearsContextBeforeDrawing="NO" contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="zb7-rY-kvP">
-                                <rect key="frame" x="0.0" y="0.0" width="375" height="44"/>
+                            <button opaque="NO" contentMode="scaleToFill" fixedFrame="YES" enabled="NO" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="Lq9-di-UG6">
+                                <rect key="frame" x="0.0" y="627" width="375" height="40"/>
+                                <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMinY="YES"/>
+                                <color key="backgroundColor" red="1" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <state key="normal" title="Tap Pins to Delete">
+                                    <color key="titleColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
+                                </state>
+                            </button>
+                            <navigationBar contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="AiY-6b-aE6">
+                                <rect key="frame" x="0.0" y="20" width="375" height="44"/>
                                 <autoresizingMask key="autoresizingMask" widthSizable="YES" flexibleMaxY="YES"/>
                                 <items>
-                                    <barButtonItem systemItem="edit" id="ImA-ka-bgG">
-                                        <connections>
-                                            <action selector="editPins:" destination="rAk-dx-zmq" id="qB9-MD-KO6"/>
-                                        </connections>
-                                    </barButtonItem>
+                                    <navigationItem title="Virtual Tourist" id="nHF-LV-Xac">
+                                        <barButtonItem key="rightBarButtonItem" systemItem="edit" id="FHU-a9-jOG"/>
+                                    </navigationItem>
                                 </items>
-                            </toolbar>
+                            </navigationBar>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <viewLayoutGuide key="safeArea" id="ypX-JF-U6z"/>
                     </view>
                     <connections>
+                        <outlet property="editButton" destination="FHU-a9-jOG" id="6ZL-eV-Qkr"/>
                         <outlet property="mapView" destination="rOw-tX-d1U" id="xMp-ZU-I41"/>
+                        <outlet property="navigationBar" destination="AiY-6b-aE6" id="Y0P-7u-zhc"/>
+                        <outlet property="navigationItem" destination="nHF-LV-Xac" id="gNc-W1-Fbd"/>
+                        <outlet property="redBottomButton" destination="Lq9-di-UG6" id="yAF-zG-cZN"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="czl-Nc-v0u" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="142" y="154"/>
+            <point key="canvasLocation" x="141.59999999999999" y="152.47376311844079"/>
         </scene>
         <!--Collection View Controller-->
         <scene sceneID="Um1-6v-pQ7">
