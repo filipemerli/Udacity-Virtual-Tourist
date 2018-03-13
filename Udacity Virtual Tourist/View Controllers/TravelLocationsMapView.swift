@@ -41,6 +41,13 @@ class TravelLocationsMapView: UIViewController, MKMapViewDelegate {
         zoomOnMap()
     }
     
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        
+        //Tirar screenshot
+        
+    }
+    
     // Salvar ultima "tela" visualizada pelo usuario no Userdefaults!
     func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
         UserDefaults.standard.set(mapView.centerCoordinate.latitude, forKey: "defaultLatitude")
@@ -91,7 +98,8 @@ class TravelLocationsMapView: UIViewController, MKMapViewDelegate {
             }
             mapView.removeAnnotation(view.annotation!)
         } else {
-            //nothing here
+            let controller = storyboard?.instantiateViewController(withIdentifier: "PicturesViewController")
+            self.present(controller!, animated: false, completion: nil)
         }
     }
     
