@@ -73,15 +73,15 @@ class TravelLocationsMapView: UIViewController, MKMapViewDelegate {
     }
     
     func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
+        guard let pinLatitude = view.annotation?.coordinate.latitude else {
+            print("erro")
+            return
+        }
+        guard let pinLongitude = view.annotation?.coordinate.longitude else {
+            print("erro")
+            return
+        }
         if notInEditingMode == false {
-            guard let pinLatitude = view.annotation?.coordinate.latitude else {
-                print("erro")
-                return
-            }
-            guard let pinLongitude = view.annotation?.coordinate.longitude else {
-                print("erro")
-                return
-            }
             let pinRequest: NSFetchRequest<Pin> = Pin.fetchRequest()
             let pinLatPredicate = NSPredicate(format: "pinLatitude = %lf", pinLatitude)
             let pinLonPredicate = NSPredicate(format: "pinLongitude = %lf", pinLongitude)
@@ -90,6 +90,7 @@ class TravelLocationsMapView: UIViewController, MKMapViewDelegate {
             do {
                 let objects = try managedObjectContext.fetch(pinRequest)
                 for pinToDelete in objects {
+                    //let objectID = pinToDelete.objectID
                     managedObjectContext.delete(pinToDelete)
                 }
                 try managedObjectContext.save()
@@ -98,6 +99,15 @@ class TravelLocationsMapView: UIViewController, MKMapViewDelegate {
             }
             mapView.removeAnnotation(view.annotation!)
         } else {
+            SnapShot.shared.currentPinLat = pinLatitude
+            SnapShot.shared.currentPinLong = pinLongitude
+            let layer = UIApplication.shared.keyWindow!.layer
+            let scale = UIScreen.main.scale
+            UIGraphicsBeginImageContextWithOptions(layer.frame.size, false, scale)
+            layer.render(in: UIGraphicsGetCurrentContext()!)
+            let capturedImage = UIGraphicsGetImageFromCurrentImageContext()
+            UIGraphicsEndImageContext()
+            SnapShot.shared.snapShot = capturedImage
             let controller = storyboard?.instantiateViewController(withIdentifier: "PicturesViewController")
             self.present(controller!, animated: false, completion: nil)
         }

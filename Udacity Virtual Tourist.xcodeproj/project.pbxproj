@@ -17,6 +17,7 @@
 		A7F600A420575AAE00DE8110 /* MyCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7F600A320575AAE00DE8110 /* MyCollectionViewCell.swift */; };
 		A7F600A7205766D500DE8110 /* FlickrConstants.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7F600A6205766D500DE8110 /* FlickrConstants.swift */; };
 		A7F600A920576A6E00DE8110 /* FlickrAPIClient.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7F600A820576A6E00DE8110 /* FlickrAPIClient.swift */; };
+		A7F600AB20583B8F00DE8110 /* SnapShot.swift in Sources */ = {isa = PBXBuildFile; fileRef = A7F600AA20583B8F00DE8110 /* SnapShot.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -32,6 +33,7 @@
 		A7F600A320575AAE00DE8110 /* MyCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyCollectionViewCell.swift; sourceTree = "<group>"; };
 		A7F600A6205766D500DE8110 /* FlickrConstants.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlickrConstants.swift; sourceTree = "<group>"; };
 		A7F600A820576A6E00DE8110 /* FlickrAPIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlickrAPIClient.swift; sourceTree = "<group>"; };
+		A7F600AA20583B8F00DE8110 /* SnapShot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SnapShot.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -99,6 +101,7 @@
 			children = (
 				A7F600A6205766D500DE8110 /* FlickrConstants.swift */,
 				A7F600A820576A6E00DE8110 /* FlickrAPIClient.swift */,
+				A7F600AA20583B8F00DE8110 /* SnapShot.swift */,
 			);
 			path = Controllers;
 			sourceTree = "<group>";
@@ -176,6 +179,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A7F600A22057526900DE8110 /* CollectionViewController.swift in Sources */,
+				A7F600AB20583B8F00DE8110 /* SnapShot.swift in Sources */,
 				A7F600A920576A6E00DE8110 /* FlickrAPIClient.swift in Sources */,
 				A7F600A420575AAE00DE8110 /* MyCollectionViewCell.swift in Sources */,
 				A791DBFA204F08D000763323 /* TouristPoint.xcdatamodeld in Sources */,
