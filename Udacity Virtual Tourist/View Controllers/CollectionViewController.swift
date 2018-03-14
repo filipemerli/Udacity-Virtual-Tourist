@@ -34,22 +34,37 @@ class CollectionViewController: UIViewController, UICollectionViewDataSource, UI
         return 9
     }
     
+    @IBAction func refreshData(_ sender: Any) {
+        
+        let arrayOfImages = currentPin.pictures
+        let singleImage = arrayOfImages?.anyObject() as? NSData
+        if singleImage == nil {
+            print("Deu Nil")
+        } else {
+            let extractedImage = UIImage(data: singleImage! as Data)
+            imageView.image = extractedImage
+        }
+        
+        picturesCollectionView.reloadData()
+        
+    }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath as IndexPath) as! MyCollectionViewCell
         
         //let imageFromPin = currentPin.managedObjectContext?.object(with: pinObjectID!)
-        let arrayOfImages = currentPin?.pictures
-        let singleImage = arrayOfImages?.anyObject() as? NSData
-        if singleImage == nil {
-            cell.cellImage?.image = imagemResult
-        } else {
-            let extractedImage = UIImage(data: singleImage! as Data)
-            cell.cellImage?.image = extractedImage
-        }
+        //let arrayOfImages = currentPin?.pictures
+        //let singleImage = arrayOfImages?.anyObject() as? NSData
+        //if singleImage == nil {
+            //cell.cellImage?.image = imagemResult
+        //} else {
+            //let extractedImage = UIImage(data: singleImage! as Data)
+            //cell.cellImage?.image = extractedImage
+        //}
         //let extractedImage = UIImage(data: singleImage as! Data)
         //cell.cellImage?.image = extractedImage
+        cell.cellImage?.image = imagemResult
         
         return cell
     }
@@ -62,6 +77,9 @@ class CollectionViewController: UIViewController, UICollectionViewDataSource, UI
         super.viewWillAppear(animated)
         let pinLatitude = SnapShot.shared.currentPinLat
         let pinLongitude = SnapShot.shared.currentPinLong
+        let coordinatesRange = bboxString(latitude: pinLatitude!, longitude: pinLongitude!)
+        FlickrAPIClient.FlickrConstants.bboxRange = coordinatesRange
+        
     }
     
     override func viewDidLoad() {
@@ -98,7 +116,8 @@ class CollectionViewController: UIViewController, UICollectionViewDataSource, UI
     }
     
     @IBAction func networkRequest(_ sender: Any) {
-        //picturesCollectionView.reloadData()
+        newCollectionButton.isEnabled = false
+        /*
         let picture = Photo(context: managedObjectContext)
         picture.picture = NSData(data: UIImageJPEGRepresentation(imageView.image!, 0.3)!) as Data
         picture.pin = currentPin
@@ -107,15 +126,26 @@ class CollectionViewController: UIViewController, UICollectionViewDataSource, UI
         } catch {
             print("Could not save data \(error.localizedDescription)")
         }
+ */
         
-        /*
+        
         FlickrAPIClient.sharedInstance().taskForGetMethod() { result, error in
             if error == nil {
                 print("\(String(describing: result))")
                 let imageURL = URL(string: result as! String)
                 if let imageData = try? Data(contentsOf: imageURL!) {
                     DispatchQueue.main.async {
-                        self.imageView.image = UIImage(data: imageData)
+                        self.imagemResult = UIImage(data: imageData)
+                        let picture = Photo(context: self.managedObjectContext)
+                        picture.picture = NSData(data: UIImageJPEGRepresentation(self.imagemResult!, 0.3)!) as Data
+                        picture.pin = self.currentPin
+                        do {
+                            try picture.managedObjectContext?.save()
+                        } catch {
+                            print("Could not save data \(error.localizedDescription)")
+                        }
+                        self.picturesCollectionView.reloadData()
+                        self.newCollectionButton.isEnabled = true
                     }
                 } else {
                     print("Image does not exist at \(String(describing: imageURL))")
@@ -123,7 +153,7 @@ class CollectionViewController: UIViewController, UICollectionViewDataSource, UI
             }else {
                 print("\(String(describing: error))")
             }
-        }*/
+        }
         
         fetchCurrentPin()
         
@@ -147,6 +177,16 @@ class CollectionViewController: UIViewController, UICollectionViewDataSource, UI
         }catch {
             print("Could not find current object: \(error.localizedDescription)")
         }
+    }
+    
+    
+    func bboxString(latitude: Double, longitude: Double) -> String {
+        let minimumLon = max(longitude - 1.0, -180.0)
+        let minimumLat = max(latitude - 1.0, -90.0)
+        let maximumLon = min(longitude + 1.0, 180.0)
+        let maximumLat = min(latitude + 1.0, 90.0)
+        
+        return "\(minimumLon),\(minimumLat),\(maximumLon),\(maximumLat)"
     }
     
     

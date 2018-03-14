@@ -22,7 +22,17 @@ class FlickrAPIClient: NSObject {
     
     // MARK: GET
     func taskForGetMethod(completionHandlerForGetMethod: @escaping(_ result: AnyObject?, _ error: Error?)-> Void) {
-        let request = URLRequest(url: URL(string: "\(FlickrAPIClient.FlickrConstants.urlExemplo)")!)
+        let methodParameters = [
+            "method": "flickr.photos.search",
+            "api_key": FlickrConstants.myKey,
+            "bbox": FlickrConstants.bboxRange,
+            "safe_search": "1",
+            "extras": "url_m",
+            "format": "json",
+            "nojsoncallback": "1"
+        ]
+        let request = URLRequest(url: flickrURLFromParameters(methodParameters as [String:AnyObject]))
+        //let request = URLRequest(url: URL(string: "\(FlickrAPIClient.FlickrConstants.urlExemplo)")!)     THIS ONE WORKS
         let session = URLSession.shared
         let task = session.dataTask(with: request) { data, response, error in
             if error != nil {
@@ -77,6 +87,21 @@ class FlickrAPIClient: NSObject {
             completionHandlerForConvertData(nil, NSError(domain: "convertDataWithCompletionHandler", code: 1, userInfo: userInfo))
         }
         completionHandlerForConvertData(parsedResult, nil)
+    }
+    
+    func flickrURLFromParameters(_ parameters: [String:AnyObject]) -> URL {
+        var components = URLComponents()
+        components.scheme = "https"
+        components.host = "api.flickr.com"
+        components.path = "/services/rest"
+        components.queryItems = [URLQueryItem]()
+        
+        for (key, value) in parameters {
+            let queryItem = URLQueryItem(name: key, value: "\(value)")
+            components.queryItems!.append(queryItem)
+        }
+        
+        return components.url!
     }
     
     
