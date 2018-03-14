@@ -20,7 +20,8 @@ class CollectionViewController: UIViewController, UICollectionViewDataSource, UI
     var pinLatitude = SnapShot.shared.currentPinLat
     var pinLongitude = SnapShot.shared.currentPinLong
     var pinObjectID: NSManagedObjectID?
-    var currentPin: Pin?
+    var currentPin: Pin!
+    var fetchedResultsController:NSFetchedResultsController<Photo>!
 
     @IBOutlet weak var newCollectionButton: UIButton!
     @IBOutlet weak var picturesCollectionView: UICollectionView!
@@ -35,8 +36,7 @@ class CollectionViewController: UIViewController, UICollectionViewDataSource, UI
     }
     
     @IBAction func refreshData(_ sender: Any) {
-        
-        let arrayOfImages = currentPin.pictures
+        let arrayOfImages = currentPin!.pictures
         let singleImage = arrayOfImages?.anyObject() as? NSData
         if singleImage == nil {
             print("Deu Nil")
@@ -44,27 +44,19 @@ class CollectionViewController: UIViewController, UICollectionViewDataSource, UI
             let extractedImage = UIImage(data: singleImage! as Data)
             imageView.image = extractedImage
         }
-        
         picturesCollectionView.reloadData()
-        
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath as IndexPath) as! MyCollectionViewCell
         
-        //let imageFromPin = currentPin.managedObjectContext?.object(with: pinObjectID!)
-        //let arrayOfImages = currentPin?.pictures
-        //let singleImage = arrayOfImages?.anyObject() as? NSData
-        //if singleImage == nil {
-            //cell.cellImage?.image = imagemResult
-        //} else {
-            //let extractedImage = UIImage(data: singleImage! as Data)
-            //cell.cellImage?.image = extractedImage
-        //}
-        //let extractedImage = UIImage(data: singleImage as! Data)
-        //cell.cellImage?.image = extractedImage
-        cell.cellImage?.image = imagemResult
+        let imageFromPin = currentPin?.pictures?.allObjects.first
+        if imageFromPin == nil {
+            cell.cellImage?.image = imagemResult
+        }else {
+            cell.cellImage?.image = UIImage(data: imageFromPin as! Data)
+        }
         
         return cell
     }
@@ -79,36 +71,15 @@ class CollectionViewController: UIViewController, UICollectionViewDataSource, UI
         let pinLongitude = SnapShot.shared.currentPinLong
         let coordinatesRange = bboxString(latitude: pinLatitude!, longitude: pinLongitude!)
         FlickrAPIClient.FlickrConstants.bboxRange = coordinatesRange
-        
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         imageView.image = SnapShot.shared.snapShot
-        
         managedObjectContext = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
-        
         DispatchQueue.main.async {
             self.fetchCurrentPin()
         }
-        /*
-        FlickrAPIClient.sharedInstance().taskForGetMethod() { result, error in
-            if error == nil {
-                print("\(String(describing: result))")
-                let imageURL = URL(string: result as! String)
-                if let imageData = try? Data(contentsOf: imageURL!) {
-                    DispatchQueue.main.async {
-                        self.imagemResult = UIImage(data: imageData)
-                    }
-                } else {
-                    print("Image does not exist at \(String(describing: imageURL))")
-                }
-            }else {
-                print("\(String(describing: error))")
-            }
-        }*/
-        
-        
     }
 
     @IBAction func backButton(_ sender: Any) {
@@ -117,18 +88,6 @@ class CollectionViewController: UIViewController, UICollectionViewDataSource, UI
     
     @IBAction func networkRequest(_ sender: Any) {
         newCollectionButton.isEnabled = false
-        /*
-        let picture = Photo(context: managedObjectContext)
-        picture.picture = NSData(data: UIImageJPEGRepresentation(imageView.image!, 0.3)!) as Data
-        picture.pin = currentPin
-        do {
-            try picture.managedObjectContext?.save()
-        } catch {
-            print("Could not save data \(error.localizedDescription)")
-        }
- */
-        
-        
         FlickrAPIClient.sharedInstance().taskForGetMethod() { result, error in
             if error == nil {
                 print("\(String(describing: result))")
@@ -144,6 +103,7 @@ class CollectionViewController: UIViewController, UICollectionViewDataSource, UI
                         } catch {
                             print("Could not save data \(error.localizedDescription)")
                         }
+                        self.fetchCurrentPin()
                         self.picturesCollectionView.reloadData()
                         self.newCollectionButton.isEnabled = true
                     }
@@ -154,13 +114,10 @@ class CollectionViewController: UIViewController, UICollectionViewDataSource, UI
                 print("\(String(describing: error))")
             }
         }
-        
         fetchCurrentPin()
-        
         picturesCollectionView.reloadData()
 
     }
-
     
     func fetchCurrentPin() {
         let pinRequest: NSFetchRequest<Pin> = Pin.fetchRequest()
@@ -172,6 +129,8 @@ class CollectionViewController: UIViewController, UICollectionViewDataSource, UI
             let objects = try managedObjectContext.fetch(pinRequest)
             for pin in objects {
                 self.pinObjectID = pin.objectID
+                print("\(String(describing: pinObjectID))")
+                print("Numero de pictures do Pin = \(String(describing: pin.pictures?.count))")
                 currentPin = pin
             }
         }catch {
@@ -188,8 +147,6 @@ class CollectionViewController: UIViewController, UICollectionViewDataSource, UI
         
         return "\(minimumLon),\(minimumLat),\(maximumLon),\(maximumLat)"
     }
-    
-    
 
 }
 
