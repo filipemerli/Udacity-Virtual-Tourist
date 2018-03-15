@@ -90,7 +90,6 @@ class TravelLocationsMapView: UIViewController, MKMapViewDelegate {
             do {
                 let objects = try managedObjectContext.fetch(pinRequest)
                 for pinToDelete in objects {
-                    //let objectID = pinToDelete.objectID
                     managedObjectContext.delete(pinToDelete)
                 }
                 try managedObjectContext.save()

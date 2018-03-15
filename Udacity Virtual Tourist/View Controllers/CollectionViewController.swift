@@ -21,7 +21,7 @@ class CollectionViewController: UIViewController, UICollectionViewDataSource, UI
     var pinLongitude = SnapShot.shared.currentPinLong
     var pinObjectID: NSManagedObjectID?
     var currentPin: Pin!
-    var photos: [Photo]?
+    var photos: [Photo] = [Photo]()
     var numberOfPics: Int = 0
 
     @IBOutlet weak var newCollectionButton: UIButton!
@@ -52,7 +52,14 @@ class CollectionViewController: UIViewController, UICollectionViewDataSource, UI
     }
     
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        print("You selected pic number \(indexPath.item)!")
+        let photoToDelete = photos[indexPath.item]
+        do {
+            managedObjectContext.delete(photoToDelete)
+            try managedObjectContext.save()
+        }catch {
+            print("Could not delete object: \(error.localizedDescription)")
+        }
+        updateCollection()
     }
     
     override func viewWillAppear(_ animated: Bool) {
@@ -82,7 +89,9 @@ class CollectionViewController: UIViewController, UICollectionViewDataSource, UI
     func updateCollection() {
         fetchCurrentPin()
         if numberOfPics >= 9 {
-            print("Already up to date")
+            //print("Already up to date")
+            photos = currentPin.pictures!.allObjects as! [Photo]
+            newCollectionButton.isEnabled = true
         }else {
             newCollectionButton.isEnabled = false
             let group = DispatchGroup()
@@ -91,7 +100,6 @@ class CollectionViewController: UIViewController, UICollectionViewDataSource, UI
             DispatchQueue.main.async {
                 FlickrAPIClient.sharedInstance().taskForGetMethod() { result, error in
                     if error == nil {
-                        print("\(String(describing: result))")
                         let imageURL = URL(string: result as! String)
                         if let imageData = try? Data(contentsOf: imageURL!) {
                             let imageFromData = UIImage(data: imageData)
@@ -118,9 +126,12 @@ class CollectionViewController: UIViewController, UICollectionViewDataSource, UI
             group.notify(queue: .main) {
                 self.fetchCurrentPin()
                 self.picturesCollectionView.reloadData()
-                self.newCollectionButton.isEnabled = true
+                if self.numberOfPics <= 9 {
+                    self.updateCollection()
+                }
             }
         }
+        
     }
     
     func fetchCurrentPin() {
@@ -132,7 +143,6 @@ class CollectionViewController: UIViewController, UICollectionViewDataSource, UI
         do {
             let objects = try managedObjectContext.fetch(pinRequest)
             for pin in objects {
-                print("Numero de pictures do Pin = \(String(describing: pin.pictures?.count))")
                 currentPin = pin
             }
         }catch {
