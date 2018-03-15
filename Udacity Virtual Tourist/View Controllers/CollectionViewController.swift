@@ -15,13 +15,14 @@ class CollectionViewController: UIViewController, UICollectionViewDataSource, UI
     let reuseIdentifier = "cell"
     var imagemResult: UIImage?
     let itensPerRow: CGFloat = 3
-    let sectionInsets = UIEdgeInsets(top: 50.0, left: 20.0, bottom: 50.0, right: 20.0)
+    let sectionInsets = UIEdgeInsets(top: 40.0, left: 15.0, bottom: 40.0, right: 15.0)
     var managedObjectContext: NSManagedObjectContext!
     var pinLatitude = SnapShot.shared.currentPinLat
     var pinLongitude = SnapShot.shared.currentPinLong
     var pinObjectID: NSManagedObjectID?
     var currentPin: Pin!
-    var fetchedResultsController:NSFetchedResultsController<Photo>!
+    var photos: [Photo]?
+    var numberOfPics: Int = 0
 
     @IBOutlet weak var newCollectionButton: UIButton!
     @IBOutlet weak var picturesCollectionView: UICollectionView!
@@ -32,30 +33,19 @@ class CollectionViewController: UIViewController, UICollectionViewDataSource, UI
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return 9
-    }
-    
-    @IBAction func refreshData(_ sender: Any) {
-        let arrayOfImages = currentPin!.pictures
-        let singleImage = arrayOfImages?.anyObject() as? NSData
-        if singleImage == nil {
-            print("Deu Nil")
-        } else {
-            let extractedImage = UIImage(data: singleImage! as Data)
-            imageView.image = extractedImage
-        }
-        picturesCollectionView.reloadData()
+        return numberOfPics
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath as IndexPath) as! MyCollectionViewCell
-        
-        let imageFromPin = currentPin?.pictures?.allObjects.first
-        if imageFromPin == nil {
-            cell.cellImage?.image = imagemResult
-        }else {
-            cell.cellImage?.image = UIImage(data: imageFromPin as! Data)
+        if let photos = currentPin?.pictures?.allObjects as? [Photo] {
+            let imageFromPin = photos[indexPath.item]
+            if imageFromPin == nil {
+                cell.cellImage?.image = imagemResult
+            }else {
+                cell.cellImage?.image = UIImage(data: imageFromPin.picture as! Data)
+            }
         }
         
         return cell
@@ -71,52 +61,66 @@ class CollectionViewController: UIViewController, UICollectionViewDataSource, UI
         let pinLongitude = SnapShot.shared.currentPinLong
         let coordinatesRange = bboxString(latitude: pinLatitude!, longitude: pinLongitude!)
         FlickrAPIClient.FlickrConstants.bboxRange = coordinatesRange
+        fetchCurrentPin()
     }
     
     override func viewDidLoad() {
         super.viewDidLoad()
         imageView.image = SnapShot.shared.snapShot
         managedObjectContext = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
-        DispatchQueue.main.async {
-            self.fetchCurrentPin()
-        }
+        picturesCollectionView.reloadData()
     }
-
+    
     @IBAction func backButton(_ sender: Any) {
         self.dismiss(animated: false, completion: nil)
     }
     
     @IBAction func networkRequest(_ sender: Any) {
-        newCollectionButton.isEnabled = false
-        FlickrAPIClient.sharedInstance().taskForGetMethod() { result, error in
-            if error == nil {
-                print("\(String(describing: result))")
-                let imageURL = URL(string: result as! String)
-                if let imageData = try? Data(contentsOf: imageURL!) {
-                    DispatchQueue.main.async {
-                        self.imagemResult = UIImage(data: imageData)
-                        let picture = Photo(context: self.managedObjectContext)
-                        picture.picture = NSData(data: UIImageJPEGRepresentation(self.imagemResult!, 0.3)!) as Data
-                        picture.pin = self.currentPin
-                        do {
-                            try picture.managedObjectContext?.save()
-                        } catch {
-                            print("Could not save data \(error.localizedDescription)")
+        updateCollection()
+    }
+    
+    func updateCollection() {
+        fetchCurrentPin()
+        if numberOfPics >= 9 {
+            print("Already up to date")
+        }else {
+            newCollectionButton.isEnabled = false
+            let group = DispatchGroup()
+            group.enter()
+            
+            DispatchQueue.main.async {
+                FlickrAPIClient.sharedInstance().taskForGetMethod() { result, error in
+                    if error == nil {
+                        print("\(String(describing: result))")
+                        let imageURL = URL(string: result as! String)
+                        if let imageData = try? Data(contentsOf: imageURL!) {
+                            let imageFromData = UIImage(data: imageData)
+                            let picture = Photo(context: self.managedObjectContext)
+                            picture.picture = NSData(data: UIImageJPEGRepresentation(imageFromData!, 0.3)!) as Data
+                            picture.pin = self.currentPin
+                            do {
+                                try picture.managedObjectContext?.save()
+                                group.leave()
+                            } catch {
+                                group.leave()
+                                print("Could not save data \(error.localizedDescription)")
+                            }
+                        } else {
+                            group.leave()
+                            print("Image does not exist at \(String(describing: imageURL))")
                         }
-                        self.fetchCurrentPin()
-                        self.picturesCollectionView.reloadData()
-                        self.newCollectionButton.isEnabled = true
+                    }else {
+                        self.sendUIMessage(message: "No images found at this point. Please, dele this Pin and try another place!")
+                        print("\(String(describing: error))")
                     }
-                } else {
-                    print("Image does not exist at \(String(describing: imageURL))")
                 }
-            }else {
-                print("\(String(describing: error))")
+            }
+            group.notify(queue: .main) {
+                self.fetchCurrentPin()
+                self.picturesCollectionView.reloadData()
+                self.newCollectionButton.isEnabled = true
             }
         }
-        fetchCurrentPin()
-        picturesCollectionView.reloadData()
-
     }
     
     func fetchCurrentPin() {
@@ -128,14 +132,13 @@ class CollectionViewController: UIViewController, UICollectionViewDataSource, UI
         do {
             let objects = try managedObjectContext.fetch(pinRequest)
             for pin in objects {
-                self.pinObjectID = pin.objectID
-                print("\(String(describing: pinObjectID))")
                 print("Numero de pictures do Pin = \(String(describing: pin.pictures?.count))")
                 currentPin = pin
             }
         }catch {
             print("Could not find current object: \(error.localizedDescription)")
         }
+        numberOfPics = (currentPin.pictures?.count)!
     }
     
     
@@ -146,6 +149,16 @@ class CollectionViewController: UIViewController, UICollectionViewDataSource, UI
         let maximumLat = min(latitude + 1.0, 90.0)
         
         return "\(minimumLon),\(minimumLat),\(maximumLon),\(maximumLat)"
+    }
+    
+    func sendUIMessage(message: String) {
+        let alertController = UIAlertController(title: "Alert", message: message, preferredStyle: .alert)
+        let alertAction = UIAlertAction(title: "OK", style: .default) { action in
+            alertController.dismiss(animated: true, completion: nil)
+            self.dismiss(animated: true, completion: nil)
+        }
+        alertController.addAction(alertAction)
+        self.present(alertController, animated: true, completion: nil)
     }
 
 }

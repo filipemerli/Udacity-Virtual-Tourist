@@ -21,7 +21,7 @@ class FlickrAPIClient: NSObject {
     }
     
     // MARK: GET
-    func taskForGetMethod(completionHandlerForGetMethod: @escaping(_ result: AnyObject?, _ error: Error?)-> Void) {
+    func taskForGetMethod(completionHandlerForGetMethod: @escaping(_ result: AnyObject?, _ error: String?)-> Void) {
         let methodParameters = [
             "method": "flickr.photos.search",
             "api_key": FlickrConstants.myKey,
@@ -32,50 +32,46 @@ class FlickrAPIClient: NSObject {
             "nojsoncallback": "1"
         ]
         let request = URLRequest(url: flickrURLFromParameters(methodParameters as [String:AnyObject]))
-        //let request = URLRequest(url: URL(string: "\(FlickrAPIClient.FlickrConstants.urlExemplo)")!)     THIS ONE WORKS
         let session = URLSession.shared
         let task = session.dataTask(with: request) { data, response, error in
             if error != nil {
-                completionHandlerForGetMethod(nil, error)
+                completionHandlerForGetMethod(nil, error?.localizedDescription)
                 return
             }
             self.convertDataWithCompletionHandler(data!) { results, error in
-                /*if let error = error {
-                    completionHandlerForGetMethod(nil, error)
-                } else {
-                    completionHandlerForGetMethod(results, nil)
-                }*/
-                
-
                 guard let stat = results!["stat"] as? String, stat == "ok" else {
                     print("Flickr API returned an error. See error code and message in \(String(describing: results))")
+                    completionHandlerForGetMethod(nil, "No results from Flickr")
                     return
                 }
                 guard let photosDict = results!["photos"] as? [String:AnyObject] else {
                     print("Cannot find key photos in \(String(describing: results))")
+                    completionHandlerForGetMethod(nil, "No Photos")
                     return
                 }
+                
                 guard let photosArray = photosDict["photo"] as? [[String: AnyObject]] else {
                     print("Cannot find key photo in \(photosDict)")
+                    completionHandlerForGetMethod(nil, "No photo")
                     return
                 }
                 if photosArray.count == 0 {
                     print("No Photos Found. Search Again.")
+                    completionHandlerForGetMethod(nil, "No photos found")
                     return
                 } else {
-                    let photoDict = photosArray[0] as [String: AnyObject]
+                    let randomPhotoIndex = Int(arc4random_uniform(UInt32(photosArray.count)))
+                    let photoDict = photosArray[randomPhotoIndex] as [String: AnyObject]
                     guard let imageUrlString = photoDict["url_m"] as? String else {
                         print("Cannot find key url_m in \(photoDict)")
                         return
                     }
                     completionHandlerForGetMethod(imageUrlString as AnyObject, nil)
                 }
-                
             }
         }
         task.resume()
     }
-    
     
     private func convertDataWithCompletionHandler(_ data: Data, completionHandlerForConvertData: (_ result: AnyObject?, _ error: NSError?) -> Void) {
         
@@ -103,8 +99,6 @@ class FlickrAPIClient: NSObject {
         
         return components.url!
     }
-    
-    
     
     // MARK: Shared Instance
     class func sharedInstance() -> FlickrAPIClient{

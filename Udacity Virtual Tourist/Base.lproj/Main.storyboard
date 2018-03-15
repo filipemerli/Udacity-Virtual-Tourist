@@ -136,11 +136,6 @@
                                 <action selector="backButton:" destination="gz3-Zr-OXl" id="bc5-2z-GTT"/>
                             </connections>
                         </barButtonItem>
-                        <barButtonItem key="rightBarButtonItem" systemItem="refresh" id="zJP-Tu-yzB">
-                            <connections>
-                                <action selector="refreshData:" destination="gz3-Zr-OXl" id="2O3-dh-tik"/>
-                            </connections>
-                        </barButtonItem>
                     </navigationItem>
                     <connections>
                         <outlet property="imageView" destination="7ue-8I-cza" id="amJ-VD-TuQ"/>
