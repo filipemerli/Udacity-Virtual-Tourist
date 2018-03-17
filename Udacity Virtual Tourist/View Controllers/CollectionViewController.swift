@@ -33,21 +33,22 @@ class CollectionViewController: UIViewController, UICollectionViewDataSource, UI
     }
     
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return numberOfPics
+        return 9
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        
+        print("AT CELL FOR ITEM AT")
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath as IndexPath) as! MyCollectionViewCell
         if let photos = currentPin?.pictures?.allObjects as? [Photo] {
-            let imageFromPin = photos[indexPath.item]
-            if imageFromPin == nil {
-                cell.cellImage?.image = imagemResult
-            }else {
+            print("Numero de objtos no array = \(photos.count)")
+            if photos.count > indexPath.row {
+                let imageFromPin = photos[indexPath.row]
                 cell.cellImage?.image = UIImage(data: imageFromPin.picture as! Data)
+            } else {
+                cell.cellImage.image = #imageLiteral(resourceName: "placeholder")
+                //baixar uma imagem, salvar contexto e jogar no photo array no index.row atual
             }
         }
-        
         return cell
     }
     
@@ -62,19 +63,16 @@ class CollectionViewController: UIViewController, UICollectionViewDataSource, UI
         updateCollection()
     }
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
+    override func viewDidLoad() {
+        super.viewDidLoad()
         let pinLatitude = SnapShot.shared.currentPinLat
         let pinLongitude = SnapShot.shared.currentPinLong
         let coordinatesRange = bboxString(latitude: pinLatitude!, longitude: pinLongitude!)
         FlickrAPIClient.FlickrConstants.bboxRange = coordinatesRange
-        fetchCurrentPin()
-    }
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
+        
         imageView.image = SnapShot.shared.snapShot
         managedObjectContext = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+        fetchCurrentPin()
         picturesCollectionView.reloadData()
     }
     
@@ -100,22 +98,25 @@ class CollectionViewController: UIViewController, UICollectionViewDataSource, UI
             DispatchQueue.main.async {
                 FlickrAPIClient.sharedInstance().taskForGetMethod() { result, error in
                     if error == nil {
-                        let imageURL = URL(string: result as! String)
-                        if let imageData = try? Data(contentsOf: imageURL!) {
-                            let imageFromData = UIImage(data: imageData)
-                            let picture = Photo(context: self.managedObjectContext)
-                            picture.picture = NSData(data: UIImageJPEGRepresentation(imageFromData!, 0.3)!) as Data
-                            picture.pin = self.currentPin
-                            do {
-                                try picture.managedObjectContext?.save()
+                        //let imageURL = URL(string: result as! String)
+                        let imageURLString = result as! String
+                        self.downloadImage(imagePath: imageURLString) { imageData, errorString in
+                            if errorString == nil {
+                                let imageFromData = UIImage(data: imageData!)
+                                let picture = Photo(context: self.managedObjectContext)
+                                picture.picture = NSData(data: UIImageJPEGRepresentation(imageFromData!, 0.3)!) as Data
+                                picture.pin = self.currentPin
+                                do {
+                                    try picture.managedObjectContext?.save()
+                                    group.leave()
+                                } catch {
+                                    group.leave()
+                                    print("Could not save data \(error.localizedDescription)")
+                                }
+                            } else {
                                 group.leave()
-                            } catch {
-                                group.leave()
-                                print("Could not save data \(error.localizedDescription)")
+                                print("Image does not exist at \(String(describing: imageURLString))")
                             }
-                        } else {
-                            group.leave()
-                            print("Image does not exist at \(String(describing: imageURL))")
                         }
                     }else {
                         self.sendUIMessage(message: "No images found at this point. Please, dele this Pin and try another place!")
@@ -169,6 +170,24 @@ class CollectionViewController: UIViewController, UICollectionViewDataSource, UI
         }
         alertController.addAction(alertAction)
         self.present(alertController, animated: true, completion: nil)
+    }
+    
+    func downloadImage( imagePath:String, completionHandler: @escaping (_ imageData: Data?, _ errorString: String?) -> Void){
+        let session = URLSession.shared
+        let imgURL = NSURL(string: imagePath)
+        let request: NSURLRequest = NSURLRequest(url: imgURL! as URL)
+        
+        let task = session.dataTask(with: request as URLRequest) {data, response, downloadError in
+            
+            if downloadError != nil {
+                completionHandler(nil, "Could not download image \(imagePath)")
+            } else {
+                
+                completionHandler(data, nil)
+            }
+        }
+        
+        task.resume()
     }
 
 }

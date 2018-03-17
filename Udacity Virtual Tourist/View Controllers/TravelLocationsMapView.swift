@@ -34,18 +34,11 @@ class TravelLocationsMapView: UIViewController, MKMapViewDelegate {
         mapView.delegate = self
         mapView.isRotateEnabled = false
         longPress = UILongPressGestureRecognizer(target: self, action: #selector(addAnnotation(longGesture:)))
-        longPress.minimumPressDuration = 1.8
+        longPress.minimumPressDuration = 1.0
         mapView.addGestureRecognizer(longPress)
         managedObjectContext = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
         populateMap()
         zoomOnMap()
-    }
-    
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        
-        //Tirar screenshot
-        
     }
     
     // Salvar ultima "tela" visualizada pelo usuario no Userdefaults!
@@ -74,11 +67,11 @@ class TravelLocationsMapView: UIViewController, MKMapViewDelegate {
     
     func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
         guard let pinLatitude = view.annotation?.coordinate.latitude else {
-            print("erro")
+            debugPrint("erro")
             return
         }
         guard let pinLongitude = view.annotation?.coordinate.longitude else {
-            print("erro")
+            debugPrint("erro")
             return
         }
         if notInEditingMode == false {
@@ -109,6 +102,7 @@ class TravelLocationsMapView: UIViewController, MKMapViewDelegate {
             SnapShot.shared.snapShot = capturedImage
             let controller = storyboard?.instantiateViewController(withIdentifier: "PicturesViewController")
             self.present(controller!, animated: false, completion: nil)
+            mapView.deselectAnnotation(view.annotation, animated: true)
         }
     }
     
