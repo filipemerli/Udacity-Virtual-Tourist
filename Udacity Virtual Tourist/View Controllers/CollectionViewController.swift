@@ -37,16 +37,13 @@ class CollectionViewController: UIViewController, UICollectionViewDataSource, UI
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        print("AT CELL FOR ITEM AT")
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath as IndexPath) as! MyCollectionViewCell
         if let photos = currentPin?.pictures?.allObjects as? [Photo] {
-            print("Numero de objtos no array = \(photos.count)")
             if photos.count > indexPath.row {
                 let imageFromPin = photos[indexPath.row]
                 cell.cellImage?.image = UIImage(data: imageFromPin.picture as! Data)
             } else {
                 cell.cellImage.image = #imageLiteral(resourceName: "placeholder")
-                //baixar uma imagem, salvar contexto e jogar no photo array no index.row atual
             }
         }
         return cell
@@ -73,6 +70,9 @@ class CollectionViewController: UIViewController, UICollectionViewDataSource, UI
         imageView.image = SnapShot.shared.snapShot
         managedObjectContext = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
         fetchCurrentPin()
+        if numberOfPics == 0 {
+            updateCollection()
+        }
         picturesCollectionView.reloadData()
     }
     
@@ -81,13 +81,22 @@ class CollectionViewController: UIViewController, UICollectionViewDataSource, UI
     }
     
     @IBAction func networkRequest(_ sender: Any) {
+        newCollectionButton.isEnabled = false
+        let photosToDelete = photos
+        do {
+            for photo in photosToDelete {
+                managedObjectContext.delete(photo)
+            }
+            try managedObjectContext.save()
+        }catch {
+            print("Could not delete all photos: \(error.localizedDescription)")
+        }
         updateCollection()
     }
     
     func updateCollection() {
         fetchCurrentPin()
         if numberOfPics >= 9 {
-            //print("Already up to date")
             photos = currentPin.pictures!.allObjects as! [Photo]
             newCollectionButton.isEnabled = true
         }else {
@@ -98,7 +107,6 @@ class CollectionViewController: UIViewController, UICollectionViewDataSource, UI
             DispatchQueue.main.async {
                 FlickrAPIClient.sharedInstance().taskForGetMethod() { result, error in
                     if error == nil {
-                        //let imageURL = URL(string: result as! String)
                         let imageURLString = result as! String
                         self.downloadImage(imagePath: imageURLString) { imageData, errorString in
                             if errorString == nil {
