@@ -11,6 +11,9 @@ import MapKit
 import CoreData
 
 class TravelLocationsMapView: UIViewController, MKMapViewDelegate {
+    
+    // MARK: Variables and UIElements
+    
     var pins = [Pin]()
     var fetchedResultsController: NSFetchedResultsController<Pin>!
     var managedObjectContext: NSManagedObjectContext!
@@ -23,6 +26,8 @@ class TravelLocationsMapView: UIViewController, MKMapViewDelegate {
     @IBOutlet weak var redBottomButton: UIButton!
     @IBOutlet weak var editButton: UIBarButtonItem!
     @IBOutlet weak var mapView: MKMapView!
+    
+    // MARK: ViewDidLoad and ViewWillAppear
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
@@ -41,7 +46,7 @@ class TravelLocationsMapView: UIViewController, MKMapViewDelegate {
         zoomOnMap()
     }
     
-    // Salvar ultima "tela" visualizada pelo usuario no Userdefaults!
+    // Save the last "screen" user was visualizing by using Userdefaults.
     func mapView(_ mapView: MKMapView, regionDidChangeAnimated animated: Bool) {
         UserDefaults.standard.set(mapView.centerCoordinate.latitude, forKey: "defaultLatitude")
         UserDefaults.standard.set(mapView.centerCoordinate.longitude, forKey: "defaultLongitude")
@@ -50,6 +55,7 @@ class TravelLocationsMapView: UIViewController, MKMapViewDelegate {
     }
     
     // MARK: MapView Delegates
+    
     func mapView(_ mapView: MKMapView, viewFor annotation: MKAnnotation) -> MKAnnotationView? {
         let reuseId = "pin"
         var pinView = mapView.dequeueReusableAnnotationView(withIdentifier: reuseId) as? MKPinAnnotationView
@@ -64,6 +70,8 @@ class TravelLocationsMapView: UIViewController, MKMapViewDelegate {
         }
         return pinView
     }
+    
+    // MARK: User Selected a pin
     
     func mapView(_ mapView: MKMapView, didSelect view: MKAnnotationView) {
         guard let pinLatitude = view.annotation?.coordinate.latitude else {
@@ -106,6 +114,8 @@ class TravelLocationsMapView: UIViewController, MKMapViewDelegate {
         }
     }
     
+    // MARK: Add annotations
+    
     @objc func addAnnotation(longGesture: UIGestureRecognizer) {
         if (longGesture.state == UIGestureRecognizerState.began && notInEditingMode) {
             animatePins = true
@@ -140,6 +150,8 @@ class TravelLocationsMapView: UIViewController, MKMapViewDelegate {
         mapView.setRegion(viewRegion, animated: false)
     }
     
+    // MARK: Update Pins
+    
     func populateMap() {
         mapView.removeAnnotations(mapView.annotations)
         annotations.removeAll()
@@ -167,6 +179,7 @@ class TravelLocationsMapView: UIViewController, MKMapViewDelegate {
     }
     
     //MARK: Buttons configurations
+    
     func standartState() {
         notInEditingMode = true
         redBottomButton.isHidden = true
@@ -182,7 +195,7 @@ class TravelLocationsMapView: UIViewController, MKMapViewDelegate {
     }
     
     //MARK: Core Data Functions
-    
+
     func fetchRequests() {
         pins.removeAll()
         let pinRequest: NSFetchRequest<Pin> = Pin.fetchRequest()

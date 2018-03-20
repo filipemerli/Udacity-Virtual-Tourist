@@ -73,6 +73,7 @@ class FlickrAPIClient: NSObject {
         task.resume()
     }
     
+    // MARK: Parse JSON
     private func convertDataWithCompletionHandler(_ data: Data, completionHandlerForConvertData: (_ result: AnyObject?, _ error: NSError?) -> Void) {
         
         var parsedResult: AnyObject! = nil
@@ -85,6 +86,7 @@ class FlickrAPIClient: NSObject {
         completionHandlerForConvertData(parsedResult, nil)
     }
     
+    // MARK:
     func flickrURLFromParameters(_ parameters: [String:AnyObject]) -> URL {
         var components = URLComponents()
         components.scheme = "https"

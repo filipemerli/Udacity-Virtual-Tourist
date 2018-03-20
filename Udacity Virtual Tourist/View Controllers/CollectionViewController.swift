@@ -12,6 +12,8 @@ import CoreData
 
 class CollectionViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegate {
     
+    //MARK: Variables ans UIElements
+    
     let reuseIdentifier = "cell"
     var imagemResult: UIImage?
     let itensPerRow: CGFloat = 3
@@ -27,6 +29,8 @@ class CollectionViewController: UIViewController, UICollectionViewDataSource, UI
     @IBOutlet weak var newCollectionButton: UIButton!
     @IBOutlet weak var picturesCollectionView: UICollectionView!
     @IBOutlet weak var imageView: UIImageView!
+    
+    //MARK: CollectionViewDelegates
 
     func numberOfSections(in collectionView: UICollectionView) -> Int {
         return 1
@@ -49,16 +53,23 @@ class CollectionViewController: UIViewController, UICollectionViewDataSource, UI
         return cell
     }
     
+    //MARK: User Tapped a single picture
+    
     func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
-        let photoToDelete = photos[indexPath.item]
+        newCollectionButton.isEnabled = false
+        //let photoToDelete = photos[indexPath.item]
+        let photoToDelete = currentPin?.pictures?.allObjects[indexPath.item] as! Photo
         do {
             managedObjectContext.delete(photoToDelete)
             try managedObjectContext.save()
+            photos.remove(at: indexPath.item)
         }catch {
             print("Could not delete object: \(error.localizedDescription)")
         }
-        updateCollection()
+        asyncRequests()
     }
+    
+    //MARK: ViewDidLoad
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -70,78 +81,84 @@ class CollectionViewController: UIViewController, UICollectionViewDataSource, UI
         imageView.image = SnapShot.shared.snapShot
         managedObjectContext = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
         fetchCurrentPin()
-        if numberOfPics == 0 {
-            updateCollection()
+        if numberOfPics != 9 {
+            newSetForCollection()
         }
         picturesCollectionView.reloadData()
     }
+    
+    //MARK: UIButtons Actions
     
     @IBAction func backButton(_ sender: Any) {
         self.dismiss(animated: false, completion: nil)
     }
     
     @IBAction func networkRequest(_ sender: Any) {
-        newCollectionButton.isEnabled = false
-        let photosToDelete = photos
-        do {
-            for photo in photosToDelete {
-                managedObjectContext.delete(photo)
-            }
-            try managedObjectContext.save()
-        }catch {
-            print("Could not delete all photos: \(error.localizedDescription)")
-        }
-        updateCollection()
+        newSetForCollection()
     }
     
-    func updateCollection() {
-        fetchCurrentPin()
-        if numberOfPics >= 9 {
-            photos = currentPin.pictures!.allObjects as! [Photo]
-            newCollectionButton.isEnabled = true
-        }else {
-            newCollectionButton.isEnabled = false
-            let group = DispatchGroup()
-            group.enter()
-            
-            DispatchQueue.main.async {
-                FlickrAPIClient.sharedInstance().taskForGetMethod() { result, error in
-                    if error == nil {
-                        let imageURLString = result as! String
-                        self.downloadImage(imagePath: imageURLString) { imageData, errorString in
-                            if errorString == nil {
-                                let imageFromData = UIImage(data: imageData!)
-                                let picture = Photo(context: self.managedObjectContext)
-                                picture.picture = NSData(data: UIImageJPEGRepresentation(imageFromData!, 0.3)!) as Data
-                                picture.pin = self.currentPin
-                                do {
-                                    try picture.managedObjectContext?.save()
-                                    group.leave()
-                                } catch {
-                                    group.leave()
-                                    print("Could not save data \(error.localizedDescription)")
-                                }
-                            } else {
-                                group.leave()
-                                print("Image does not exist at \(String(describing: imageURLString))")
-                            }
-                        }
-                    }else {
-                        self.sendUIMessage(message: "No images found at this point. Please, dele this Pin and try another place!")
-                        print("\(String(describing: error))")
-                    }
-                }
+    //MARK: New Set of Images
+    
+    func newSetForCollection() {
+        newCollectionButton.isEnabled = false
+        photos.removeAll()
+        do{
+            let photosToDelete = currentPin.pictures?.allObjects as! [Photo]
+            for pic in photosToDelete {
+                managedObjectContext.delete(pic)
             }
-            group.notify(queue: .main) {
-                self.fetchCurrentPin()
-                self.picturesCollectionView.reloadData()
-                if self.numberOfPics <= 9 {
-                    self.updateCollection()
+            try managedObjectContext.save()
+        }catch{
+            print("Unable to delete photo at \(error.localizedDescription)")
+        }
+        asyncRequests()
+    }
+    
+    func asyncRequests() {
+        fetchCurrentPin()
+        let group2 = DispatchGroup()
+        group2.enter()
+        DispatchQueue.main.async {
+            FlickrAPIClient.sharedInstance().taskForGetMethod() { result, error in
+                if error == nil {
+                    let imageURLString = result as! String
+                    self.downloadImage(imagePath: imageURLString) { imageData, errorString in
+                        if errorString == nil {
+                            let imageFromData = UIImage(data: imageData!)
+                            let picture = Photo(context: self.managedObjectContext)
+                            picture.picture = NSData(data: UIImageJPEGRepresentation(imageFromData!, 0.3)!) as Data
+                            picture.pin = self.currentPin
+                            do {
+                                try picture.managedObjectContext?.save()
+                                group2.leave()
+                            } catch {
+                                group2.leave()
+                                print("Could not save data \(error.localizedDescription)")
+                            }
+                        } else {
+                            group2.leave()
+                            print("Image does not exist at \(String(describing: imageURLString))")
+                        }
+                    }
+                }else {
+                    self.sendUIMessage(message: "No images found at this point. Please, dele this Pin and try another place!")
+                    print("\(String(describing: error))")
                 }
             }
         }
-        
+        group2.notify(queue: .main) {
+            self.fetchCurrentPin()
+            self.photos = self.currentPin.pictures?.allObjects as! [Photo]
+            self.picturesCollectionView.reloadData()
+            if self.numberOfPics < 9 {
+                self.asyncRequests()
+            }else {
+                self.newCollectionButton.isEnabled = true
+            }
+        }
     }
+    
+    //MARK: Fetch Pin
     
     func fetchCurrentPin() {
         let pinRequest: NSFetchRequest<Pin> = Pin.fetchRequest()
@@ -161,6 +178,8 @@ class CollectionViewController: UIViewController, UICollectionViewDataSource, UI
     }
     
     
+    //MARK: Latitude and Longitude range (bbox)
+    
     func bboxString(latitude: Double, longitude: Double) -> String {
         let minimumLon = max(longitude - 1.0, -180.0)
         let minimumLat = max(latitude - 1.0, -90.0)
@@ -169,6 +188,8 @@ class CollectionViewController: UIViewController, UICollectionViewDataSource, UI
         
         return "\(minimumLon),\(minimumLat),\(maximumLon),\(maximumLat)"
     }
+    
+    // MARK: UIAlerts
     
     func sendUIMessage(message: String) {
         let alertController = UIAlertController(title: "Alert", message: message, preferredStyle: .alert)
@@ -179,6 +200,8 @@ class CollectionViewController: UIViewController, UICollectionViewDataSource, UI
         alertController.addAction(alertAction)
         self.present(alertController, animated: true, completion: nil)
     }
+    
+    // MARK: Download URL image
     
     func downloadImage( imagePath:String, completionHandler: @escaping (_ imageData: Data?, _ errorString: String?) -> Void){
         let session = URLSession.shared
@@ -194,11 +217,12 @@ class CollectionViewController: UIViewController, UICollectionViewDataSource, UI
                 completionHandler(data, nil)
             }
         }
-        
         task.resume()
     }
 
 }
+
+// MARK: Collection Flow Layout
 
 extension CollectionViewController: UICollectionViewDelegateFlowLayout {
     
